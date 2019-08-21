@@ -11,7 +11,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>mockrest-osgi-runtime</artifactId>
-    <packaging>bundle</packaging>
+    <packaging>jar</packaging>
 
     <build>
         <plugins>
@@ -27,38 +27,24 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
-                        <id>copy-dependencies</id>
-                        <phase>prepare-package</phase>
                         <goals>
-                            <goal>copy-dependencies</goal>
+                            <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>
-                                ${project.build.directory}/classes
-                            </outputDirectory>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <transformers>
+                                <transformer implementation=
+                                                     "org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>mockrest.root.osgi.runtime.Driver</mainClass>
+                                </transformer>
+                            </transformers>
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.2</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <mainClass>mockrest.root.osgi.runtime.Driver</mainClass>
-                        </manifest>
-                        <manifestEntries>
-                            <Class-Path>.</Class-Path>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
             </plugin>
 
         </plugins>
@@ -73,6 +59,26 @@
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.annotation</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.felix/org.apache.felix.main -->
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.main</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.osgi.core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.framework</artifactId>
+        </dependency>
+
+
     </dependencies>
 
 </project>

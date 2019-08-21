@@ -1,1 +1,1 @@
-mockrest.root.osgi.runtime.OsgiFrameworkFactoryImpl
+org.apache.felix.framework.FrameworkFactory
