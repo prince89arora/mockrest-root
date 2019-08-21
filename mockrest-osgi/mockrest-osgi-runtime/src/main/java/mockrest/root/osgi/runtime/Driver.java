@@ -2,9 +2,13 @@ package mockrest.root.osgi.runtime;
 
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
+import sun.java2d.loops.ProcessPath;
 
+import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -15,7 +19,16 @@ import java.util.ServiceLoader;
 public class Driver {
 
     public static void main(String[] args) {
-        new Driver().init();
+        MockRestStructure.getStructure().initSetup();
+
+//        Driver driver = new Driver();
+//        driver.init();
+    }
+
+    public static void exit() {
+        System.out.println("Closing the runtime..");
+        System.out.println("Process id : "+ ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+        Runtime.getRuntime().exit(0);
     }
 
     public void init() {
@@ -31,21 +44,23 @@ public class Driver {
             e.printStackTrace();
         }
 
-        Runtime.getRuntime().addShutdownHook(
-                new Thread() {
+        Thread closeHook = new Thread(
+                new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            framework.start();
+                            framework.stop();
                             System.out.println("Waiting for framework to stop..");
-                            framework.waitForStop(0);
-                            System.out.println("Framework stopped");
-                            System.exit(0);
+                            FrameworkEvent event = framework.waitForStop(0);
+                            System.out.println(event.getType());
+                            Driver.exit();
                         } catch (BundleException | InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
                 }
         );
+
+        Runtime.getRuntime().addShutdownHook(closeHook);
     }
 }
