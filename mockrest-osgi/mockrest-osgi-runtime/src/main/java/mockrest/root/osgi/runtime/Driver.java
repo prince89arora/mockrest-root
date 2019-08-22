@@ -1,14 +1,12 @@
 package mockrest.root.osgi.runtime;
 
-import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
-import sun.java2d.loops.ProcessPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.lang.management.ManagementFactory;
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -18,30 +16,28 @@ import java.util.ServiceLoader;
  */
 public class Driver {
 
+    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
     public static void main(String[] args) {
         MockRestStructure.getStructure().initSetup();
-
-//        Driver driver = new Driver();
-//        driver.init();
+        new Driver().init();
     }
 
     public static void exit() {
-        System.out.println("Closing the runtime..");
-        System.out.println("Process id : "+ ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
         Runtime.getRuntime().exit(0);
     }
 
     public void init() {
         ServiceLoader<FrameworkFactory> frameworkFactory = ServiceLoader.load(FrameworkFactory.class);
         FrameworkFactory factory = frameworkFactory.iterator().next();
-        System.out.println(factory);
         Map<String, String> properties = new HashMap<>();
         final Framework framework = factory.newFramework(properties);
+        logger.info("Initializing framework => "+ framework.getSymbolicName() + " - " + framework.getVersion());
 
         try {
             framework.start();
         } catch (BundleException e) {
-            e.printStackTrace();
+            logger.error("Unable to start OSGI framework : ", e);
         }
 
         Thread closeHook = new Thread(
@@ -49,13 +45,13 @@ public class Driver {
                     @Override
                     public void run() {
                         try {
+                            logger.info("============ Stopping OSGI framework ============");
                             framework.stop();
-                            System.out.println("Waiting for framework to stop..");
-                            FrameworkEvent event = framework.waitForStop(0);
-                            System.out.println(event.getType());
+                            framework.waitForStop(0);
+                            logger.info("Stopped framework : " + framework.getSymbolicName() + " - " + framework.getVersion());
                             Driver.exit();
                         } catch (BundleException | InterruptedException e) {
-                            e.printStackTrace();
+                            logger.error("Unable to stop OSGI framework : ", e);
                         }
                     }
                 }

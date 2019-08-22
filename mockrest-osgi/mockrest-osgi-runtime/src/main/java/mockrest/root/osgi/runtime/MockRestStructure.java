@@ -62,7 +62,8 @@ public class MockRestStructure {
         if (!Files.exists(path)) {
             Files.createFile(path);
         }
-        Files.write(path, String.valueOf(MockRestStartupHelper.getProcessId()).getBytes(), StandardOpenOption.WRITE);
+        Files.write(path, String.valueOf(MockRestStartupHelper.getProcessId()).getBytes(),
+                StandardOpenOption.WRITE);
     }
 
     private String createBaseDirectoryPath() {
