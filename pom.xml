@@ -61,6 +61,29 @@
                 <artifactId>commons-lang3</artifactId>
                 <version>3.9</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.felix/org.apache.felix.http.jetty -->
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.http.jetty</artifactId>
+                <version>4.0.10</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.felix/org.apache.felix.http.bundle -->
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.http.bundle</artifactId>
+                <version>3.0.0</version>
+                <scope>provided</scope>
+            </dependency>
+
             <!-- https://mvnrepository.com/artifact/org.apache.felix/org.apache.felix.webconsole -->
             <dependency>
                 <groupId>org.apache.felix</groupId>
@@ -68,11 +91,48 @@
                 <version>4.3.12</version>
                 <scope>provided</scope>
             </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.felix/org.apache.felix.log -->
             <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-log4j12</artifactId>
-                <version>${slf4j.version}</version>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.log</artifactId>
+                <version>1.2.0</version>
+                <scope>provided</scope>
             </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.felix/org.apache.felix.http.servlet-api -->
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.http.servlet-api</artifactId>
+                <version>1.1.2</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.felix/org.apache.felix.configadmin -->
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.configadmin</artifactId>
+                <version>1.9.16</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.felix/org.apache.felix.http.whiteboard -->
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.http.whiteboard</artifactId>
+                <version>4.0.0</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.felix/org.apache.felix.log -->
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.log</artifactId>
+                <version>1.2.0</version>
+                <scope>provided</scope>
+            </dependency>
+
+
 
         </dependencies>
     </dependencyManagement>
