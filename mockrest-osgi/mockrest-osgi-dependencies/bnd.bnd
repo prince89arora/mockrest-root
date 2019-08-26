@@ -1,0 +1,13 @@
+-classpath: commons-io-2.6.jar,commons-fileupload-1.4.jar
+
+-metatypeannotations: *
+
+-dsannotations: *
+
+Export-Package: *
+
+Bundle-Name: ${project.name}
+
+Bundle-Category: MockRest OSGI
+
+Bundle-Vendor: MockRest

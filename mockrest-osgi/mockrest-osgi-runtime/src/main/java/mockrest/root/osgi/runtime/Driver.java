@@ -1,20 +1,14 @@
 package mockrest.root.osgi.runtime;
 
-import org.apache.commons.lang3.StringUtils;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.lang.invoke.MethodHandles;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -27,7 +21,10 @@ public class Driver {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     public static void main(String[] args) {
-        MockRestStructure.getStructure().initSetup();
+        /*
+        Init files structure setup for mockrest.
+         */
+        MockRestFileStructure.getStructure().initSetup();
         new Driver().init();
     }
 
@@ -44,11 +41,14 @@ public class Driver {
 
         try {
             framework.start();
-            this.installConsole(framework);
-        } catch (BundleException | IOException e) {
+            MockRestStartupHelper.initSetup(framework.getBundleContext());
+        } catch (BundleException | FileNotFoundException | URISyntaxException e) {
             logger.error("Unable to start OSGI framework : ", e);
         }
 
+        /**
+         * close hook to shutdown OSGI framework.
+         */
         Thread closeHook = new Thread(
                 new Runnable() {
                     @Override
@@ -65,28 +65,6 @@ public class Driver {
                     }
                 }
         );
-
         Runtime.getRuntime().addShutdownHook(closeHook);
-    }
-
-    private void installConsole(Framework framework) throws IOException {
-        URL url = Thread.currentThread().getContextClassLoader().getResource("default_bundles");
-        System.out.println("original:: "+ url.getPath());
-        System.out.println("fetching:: "+ StringUtils.substringAfter(url.getPath(), "file:"));
-        System.out.println(
-                "Files: " + new File(StringUtils.substringAfter(url.getPath(), "file:")).isDirectory()
-        );
-        File[] files = new File(StringUtils.substringAfter(url.getPath(), "file:")).listFiles();
-
-        for (File file : files) {
-            logger.info("Processing bundle : "+ file.toURI().toString());
-            try {
-                Bundle bundle = framework.getBundleContext().installBundle(file.toURI().toString());
-                logger.info("Bundle installed: "+ bundle.getSymbolicName());
-                bundle.start();
-            } catch (BundleException e) {
-                logger.error("Unable to install bundle: ", e);
-            }
-        }
     }
 }

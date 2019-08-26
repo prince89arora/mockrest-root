@@ -14,6 +14,7 @@
 
 
     <modules>
+        <module>mockrest-osgi-dependencies</module>
         <module>mockrest-osgi-runtime</module>
     </modules>
 
