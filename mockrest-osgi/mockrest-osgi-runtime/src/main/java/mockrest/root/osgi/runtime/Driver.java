@@ -6,11 +6,16 @@ import org.osgi.framework.launch.FrameworkFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.URISyntaxException;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.ServiceLoader;
 
 /**
@@ -35,7 +40,7 @@ public class Driver {
     public void init() {
         ServiceLoader<FrameworkFactory> frameworkFactory = ServiceLoader.load(FrameworkFactory.class);
         FrameworkFactory factory = frameworkFactory.iterator().next();
-        Map<String, String> properties = new HashMap<>();
+        Map<String, String> properties = this.getOsgiProperties();
         Framework framework = factory.newFramework(properties);
         logger.info("Initializing framework => "+ framework.getSymbolicName() + " - " + framework.getVersion());
 
@@ -66,5 +71,20 @@ public class Driver {
                 }
         );
         Runtime.getRuntime().addShutdownHook(closeHook);
+    }
+
+    private Map<String, String> getOsgiProperties() {
+        Map<String, String> map = new HashMap<>();
+        try (InputStream stream = new FileInputStream(MockRestFileStructure.getStructure()
+                .getOsgiConfigurationFilePath())) {
+            Properties properties = new Properties();
+            properties.load(stream);
+            properties.stringPropertyNames().stream().forEach(key -> {
+                map.put(key, properties.getProperty(key));
+            });
+        } catch (IOException e) {
+            logger.error("Error while preparing osgi properties: ", e);
+        }
+        return map;
     }
 }
