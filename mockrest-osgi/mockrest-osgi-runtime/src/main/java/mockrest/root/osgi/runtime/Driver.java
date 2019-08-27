@@ -1,6 +1,5 @@
 package mockrest.root.osgi.runtime;
 
-import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
@@ -8,12 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
-import java.net.URISyntaxException;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -43,12 +39,13 @@ public class Driver {
         ServiceLoader<FrameworkFactory> frameworkFactory = ServiceLoader.load(FrameworkFactory.class);
         FrameworkFactory factory = frameworkFactory.iterator().next();
         Map<String, String> properties = this.getOsgiProperties();
-        Framework framework = factory.newFramework(properties);
+        final Framework framework = factory.newFramework(properties);
         logger.info("Initializing framework => "+ framework.getSymbolicName() + " - " + framework.getVersion());
 
         try {
             framework.start();
-            MockRestStartupHelper.initSetup(framework.getBundleContext());
+            MockRestContextProvider.init(framework);
+            MockRestStartupHelper.initSetup();
         } catch (BundleException | IOException e) {
             logger.error("Unable to start OSGI framework : ", e);
         }
@@ -61,7 +58,6 @@ public class Driver {
                     @Override
                     public void run() {
                         try {
-                            logger.info("============ Stopping OSGI framework ============");
                             framework.stop();
                             framework.waitForStop(0);
                             logger.info("Stopped framework : " + framework.getSymbolicName() + " - " + framework.getVersion());
@@ -79,7 +75,7 @@ public class Driver {
      * Get properties from {@link MockRestFileStructure#getConfigurationDirectoryPath()} file.
      * convert properties to {@link Map} to be passed to framework.
      *
-     * @return
+     * @return Map<String, String>
      */
     private Map<String, String> getOsgiProperties() {
         Map<String, String> map = new HashMap<>();

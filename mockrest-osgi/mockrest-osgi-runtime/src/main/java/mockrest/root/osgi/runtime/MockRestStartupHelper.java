@@ -1,10 +1,8 @@
 package mockrest.root.osgi.runtime;
 
-import mockrest.root.osgi.runtime.common.MockRestContext;
 import org.apache.commons.io.FileUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,10 +32,7 @@ public class MockRestStartupHelper {
 
     private static final String PROP_BUNDLE_VERSION = "version";
 
-    public static void initSetup(BundleContext bundleContext) throws IOException {
-        MockRestContextProvider.INSTANCE.setContext(
-                new MockRestContext(bundleContext)
-        );
+    public static void initSetup() throws IOException {
         initMajorBundlesInstallation();
     }
 
@@ -99,7 +94,7 @@ public class MockRestStartupHelper {
                 + fileName + "-" + version + ".jar";
         //url to be used as bundle identifier in osgi.
         URL url = Thread.currentThread().getContextClassLoader().getResource(bundleJarResourcePath);
-        MockRestContextProvider.INSTANCE.getContext()
+        MockRestContextProvider.getProvider().getContext()
                 .getBundleContext()
                 .installBundle(
                         url.toString(),
