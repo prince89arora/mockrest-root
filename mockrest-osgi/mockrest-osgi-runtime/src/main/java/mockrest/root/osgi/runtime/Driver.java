@@ -47,7 +47,7 @@ public class Driver {
         try {
             framework.start();
             MockRestStartupHelper.initSetup(framework.getBundleContext());
-        } catch (BundleException | FileNotFoundException | URISyntaxException e) {
+        } catch (BundleException | IOException e) {
             logger.error("Unable to start OSGI framework : ", e);
         }
 
