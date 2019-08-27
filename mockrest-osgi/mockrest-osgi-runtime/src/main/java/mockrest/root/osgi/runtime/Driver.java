@@ -1,5 +1,6 @@
 package mockrest.root.osgi.runtime;
 
+import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
@@ -15,6 +16,7 @@ import java.net.URISyntaxException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.ServiceLoader;
 
@@ -73,14 +75,24 @@ public class Driver {
         Runtime.getRuntime().addShutdownHook(closeHook);
     }
 
+    /**
+     * Get properties from {@link MockRestFileStructure#getConfigurationDirectoryPath()} file.
+     * convert properties to {@link Map} to be passed to framework.
+     *
+     * @return
+     */
     private Map<String, String> getOsgiProperties() {
         Map<String, String> map = new HashMap<>();
         try (InputStream stream = new FileInputStream(MockRestFileStructure.getStructure()
                 .getOsgiConfigurationFilePath())) {
             Properties properties = new Properties();
             properties.load(stream);
+            //Add each property found in configuration properties file in map.
             properties.stringPropertyNames().stream().forEach(key -> {
-                map.put(key, properties.getProperty(key));
+                if (Objects.nonNull(properties.getProperty(key)) &&
+                        !properties.getProperty(key).isEmpty()) {
+                    map.put(key, properties.getProperty(key));
+                }
             });
         } catch (IOException e) {
             logger.error("Error while preparing osgi properties: ", e);
