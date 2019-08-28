@@ -30,7 +30,8 @@ public class MockRestContextProvider {
     private MockRestContextProvider(){}
 
     private MockRestContextProvider(Framework framework) {
-        this.context = new MockRestContext(this.framework.getBundleContext());
+        this.framework = framework;
+        this.context = new MockRestContext(framework.getBundleContext());
     }
 
     public MockRestContext getContext() {

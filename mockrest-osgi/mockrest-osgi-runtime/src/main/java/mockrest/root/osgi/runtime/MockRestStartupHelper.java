@@ -90,17 +90,21 @@ public class MockRestStartupHelper {
      */
     public static void installBundleFromResources(String fileName, String version) throws BundleException, URISyntaxException { ;
         //bundle file path from default bundles directory in resources.
-        String bundleJarResourcePath = DEFAULT_BUNDLES_DIR + File.separatorChar
-                + fileName + "-" + version + ".jar";
+        StringBuilder bundleJarResourcePathBuilder = new StringBuilder(DEFAULT_BUNDLES_DIR);
+        bundleJarResourcePathBuilder.append(File.separatorChar)
+                .append(fileName).append("-").append(version).append(".jar");
+
         //url to be used as bundle identifier in osgi.
-        URL url = Thread.currentThread().getContextClassLoader().getResource(bundleJarResourcePath);
+        URL url = Thread.currentThread().getContextClassLoader().getResource(
+                bundleJarResourcePathBuilder.toString()
+        );
         MockRestContextProvider.getProvider().getContext()
                 .getBundleContext()
                 .installBundle(
                         url.toString(),
                         Thread.currentThread()
                                 .getContextClassLoader()
-                                .getResourceAsStream(bundleJarResourcePath))
+                                .getResourceAsStream(bundleJarResourcePathBuilder.toString()))
                 .start();
     }
 
