@@ -38,8 +38,7 @@ public class Driver {
     public void init() {
         ServiceLoader<FrameworkFactory> frameworkFactory = ServiceLoader.load(FrameworkFactory.class);
         FrameworkFactory factory = frameworkFactory.iterator().next();
-        Map<String, String> properties = this.getOsgiProperties();
-        final Framework framework = factory.newFramework(properties);
+        final Framework framework = factory.newFramework(this.getOsgiProperties());
         logger.info("Initializing framework => "+ framework.getSymbolicName() + " - " + framework.getVersion());
 
         try {

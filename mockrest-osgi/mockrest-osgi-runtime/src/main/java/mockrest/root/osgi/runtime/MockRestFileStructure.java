@@ -28,10 +28,15 @@ public class MockRestFileStructure {
 
     public static MockRestFileStructure INSTANCE = null;
 
-    private String baseDirectoryPath = "";
-    private String configurationDirectoryPath = "";
-    private String osgiConfigurationFilePath = "";
+    //path to base mockrest directory
+    private String baseDirectoryPath;
 
+    //path to conf directory
+    private String configurationDirectoryPath;
+
+    private String osgiConfigurationFilePath;
+
+    //state of base directory presence.
     private boolean isBaseDirectoryExist = false;
 
     static {
@@ -72,6 +77,7 @@ public class MockRestFileStructure {
     }
 
     /**
+     * Create mockrest output base directory if it does not exist.
      *
      * @throws IOException
      */
@@ -83,22 +89,36 @@ public class MockRestFileStructure {
         this.isBaseDirectoryExist = true;
     }
 
+    /**
+     * Write process file to capture process id.
+     *
+     * @throws IOException
+     */
     private void writeProcessFile() throws IOException {
         String processIdFilePath = this.baseDirectoryPath + File.separator + PID_FILENAME;
         Path path = Paths.get(processIdFilePath);
         if (!Files.exists(path)) {
             Files.createFile(path);
         }
-        Files.write(path, String.valueOf(MockRestStartupHelper.getProcessId()).getBytes(),
+        Files.write(path,
+                String.valueOf(MockRestStartupHelper.getProcessId()).getBytes(),
                 StandardOpenOption.WRITE);
     }
 
+    /**
+     * full path in file system for mockrest base directory.
+     *
+     * @return
+     */
     private String createBaseDirectoryPath() {
         StringBuilder stringBuilder = new StringBuilder(System.getProperty("user.dir"));
         stringBuilder.append(File.separator).append(BASE_DIR_NAME);
         return stringBuilder.toString();
     }
 
+    /**
+     * Setup configuration files in output base directory.
+     */
     private void setupConfigurations() {
         try {
             this.setupConfigurationDirectory();
@@ -108,16 +128,25 @@ public class MockRestFileStructure {
         }
     }
 
+    /**
+     * Create conf directory if does not exist.
+     *
+     * @throws IOException
+     */
     private void setupConfigurationDirectory() throws IOException {
-        if (this.isBaseDirectoryExist) {
-            Path confDirectoryPath = Paths.get(this.baseDirectoryPath + File.separatorChar + OUTPUT_DIR_CONF);
-            if (!Files.exists(confDirectoryPath)) {
-                Files.createDirectory(confDirectoryPath);
-            }
-            this.configurationDirectoryPath = confDirectoryPath.toString();
+        Path confDirectoryPath = Paths.get(this.baseDirectoryPath + File.separatorChar + OUTPUT_DIR_CONF);
+        this.configurationDirectoryPath = confDirectoryPath.toString();
+        if (Files.exists(confDirectoryPath)) {
+            return;
         }
+        Files.createDirectory(confDirectoryPath);
     }
 
+    /**
+     * save felix configuration properties file.
+     *
+     * @throws IOException
+     */
     private void setupFelixConfig() throws IOException {
         this.osgiConfigurationFilePath = this.configurationDirectoryPath + File.separatorChar + OUTPUT_DIR_OSGI_FILE;
         Path targetPath = Paths.get(this.osgiConfigurationFilePath);
