@@ -7,6 +7,8 @@ public class Constants {
 
     public static final String FILE_BUNDLES_PATH = "conf/bundles.json";
 
+    public static final String FILE_BIN_CONF_PATH = "conf/bin.json";
+
     public static final String BASE_DIR_NAME = "mockrest";
 
     public static final String PID_FILENAME = "PID";
@@ -18,5 +20,13 @@ public class Constants {
     public static final String OUTPUT_DIR_OSGI_FILE = "osgi.properties";
 
     public static final String DEFAULT_BUNDLES_DIR = "default_bundles";
+
+    public static final String DIR_OUTPUT_BIN = "bin";
+
+    public static final String RESOURCE_TO_COPY_FILE = "file";
+
+    public static final String RESOURCE_TO_COPY_DEST = "output";
+
+    public static final String RESOURCE_TO_COPY_EXECUTABLE = "isExecutable";
 
 }

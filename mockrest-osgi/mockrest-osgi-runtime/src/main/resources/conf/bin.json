@@ -1,0 +1,12 @@
+[
+  {
+    "file": "static/start.sh",
+    "output": "bin/start.sh",
+    "isExecutable": true
+  },
+  {
+    "file": "static/stop.sh",
+    "output": "bin/stop.sh",
+    "isExecutable": true
+  }
+]
