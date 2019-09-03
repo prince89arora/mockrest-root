@@ -257,9 +257,11 @@ public class MockRestFileStructure {
                 String outputPath = this.rootDirectory + File.separatorChar + object.getString(RESOURCE_TO_COPY_DEST);
                 try {
                     final File outputFile = new File(outputPath);
-                    FileUtils.copyInputStreamToFile(stream, outputFile);
-                    if (object.getBoolean(RESOURCE_TO_COPY_EXECUTABLE)) {
-                        outputFile.setExecutable(true);
+                    if (!outputFile.exists()) {
+                        FileUtils.copyInputStreamToFile(stream, outputFile);
+                        if (object.getBoolean(RESOURCE_TO_COPY_EXECUTABLE)) {
+                            outputFile.setExecutable(true);
+                        }
                     }
                 } catch (IOException e) {
                     logger.error(

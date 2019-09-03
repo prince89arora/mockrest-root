@@ -12,7 +12,8 @@ echo "|  |  | |     | |       |____/  |_____/ |______ |______    |"
 echo "|  |  | |_____| |_____  |    \_ |    \_ |______ ______|    |  "
 
 echo ""
-cd ../../
 confFile="$mr_dir"/conf/conf.properties
 executorFileName=$(cat "$confFile" | grep mr_executor | cut -d'=' -f2)
-java -jar "$executorFileName"
+nohup java -jar "$executorFileName" > server.out &
+echo "Started MockRest Successfully..."
+exit 0
