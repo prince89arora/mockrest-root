@@ -41,14 +41,14 @@ public class MockRestFileStructure {
     private static final String CONF_PROP_APP_JARFILE = "mr_executor";
 
     //path to base mockrest directory
-    private String baseDirectoryPath;
+    private String baseMRDirectoryPath;
+
+    private String rootDirectory;
 
     //path to conf directory
     private String configurationDirectoryPath;
 
     private String osgiConfigurationFilePath;
-
-    private String binDirectoryPath;
 
     //state of base directory presence.
     private boolean isBaseDirectoryExist = false;
@@ -59,15 +59,16 @@ public class MockRestFileStructure {
     }
 
     private MockRestFileStructure(){
-        this.baseDirectoryPath = this.createBaseDirectoryPath();
+        this.baseMRDirectoryPath = this.createBaseDirectoryPath();
+        this.rootDirectory = StringUtils.substringBeforeLast(this.baseMRDirectoryPath, String.valueOf(File.separatorChar));
     }
 
     public static MockRestFileStructure getStructure() {
         return INSTANCE;
     }
 
-    public String getBaseDirectoryPath() {
-        return baseDirectoryPath;
+    public String getBaseMRDirectoryPath() {
+        return baseMRDirectoryPath;
     }
 
     public String getConfigurationDirectoryPath() {
@@ -84,7 +85,7 @@ public class MockRestFileStructure {
             if (this.isBaseDirectoryExist) {
                 this.writeProcessFile();
                 this.setupConfigurations();
-                this.setupBin();
+                this.copyScripts();
             }
         } catch (IOException e) {
             logger.error("Unable to setup file system for mockrest: ", e);
@@ -97,7 +98,7 @@ public class MockRestFileStructure {
      * @throws IOException
      */
     private void getOrWriteBaseDir() throws IOException {
-        Path baseDirPath = Paths.get(this.baseDirectoryPath);
+        Path baseDirPath = Paths.get(this.baseMRDirectoryPath);
         if (!Files.exists(baseDirPath)) {
             Files.createDirectory(baseDirPath);
         }
@@ -110,7 +111,7 @@ public class MockRestFileStructure {
      * @throws IOException
      */
     private void writeProcessFile() throws IOException {
-        String processIdFilePath = this.baseDirectoryPath + File.separator + PID_FILENAME;
+        String processIdFilePath = this.baseMRDirectoryPath + File.separator + PID_FILENAME;
         Path path = Paths.get(processIdFilePath);
         if (!Files.exists(path)) {
             Files.createFile(path);
@@ -150,7 +151,7 @@ public class MockRestFileStructure {
      * @throws IOException
      */
     private void setupConfigurationDirectory() throws IOException {
-        Path confDirectoryPath = Paths.get(this.baseDirectoryPath + File.separatorChar + OUTPUT_DIR_CONF);
+        Path confDirectoryPath = Paths.get(this.baseMRDirectoryPath + File.separatorChar + OUTPUT_DIR_CONF);
         this.configurationDirectoryPath = confDirectoryPath.toString();
         if (Files.exists(confDirectoryPath)) {
             return;
@@ -169,17 +170,6 @@ public class MockRestFileStructure {
         if (!Files.exists(targetPath)) {
             URL sourcePath = Thread.currentThread().getContextClassLoader().getResource(OSGI_CONF_FILE);
             FileUtils.copyURLToFile(sourcePath, targetPath.toFile());
-        }
-    }
-
-    private void setupBin() throws IOException {
-        this.binDirectoryPath = this.baseDirectoryPath + File.separatorChar + DIR_OUTPUT_BIN;
-        Path binPath = Paths.get(this.binDirectoryPath);
-        if (!Files.exists(binPath)) {
-            Files.createDirectory(binPath);
-        }
-        if (Files.list(binPath).toArray().length == 0) {
-            this.copyBinContent();
         }
     }
 
@@ -219,7 +209,7 @@ public class MockRestFileStructure {
         properties.load(fileReader);
 
         //check application base path and update if missing or not correct.
-        String basePath = StringUtils.substringBeforeLast(this.baseDirectoryPath,
+        String basePath = StringUtils.substringBeforeLast(this.baseMRDirectoryPath,
                 String.valueOf(File.separatorChar));
         if (properties.getProperty(CONF_PROP_APP_BASE, "").isEmpty() ||
                 !properties.get(CONF_PROP_APP_BASE).equals(basePath)) {
@@ -242,9 +232,9 @@ public class MockRestFileStructure {
         }
     }
 
-    private void copyBinContent() {
+    private void copyScripts() {
         InputStream stream = Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream(FILE_BIN_CONF_PATH);
+                .getResourceAsStream(SCRIPTS_CONF_PATH);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, Charset.defaultCharset()))) {
             StringBuilder builder = new StringBuilder();
             reader.lines().forEach(line -> {
@@ -264,7 +254,7 @@ public class MockRestFileStructure {
             InputStream stream = MockRestFileStructure.class.getClassLoader()
                     .getResourceAsStream(object.getString(RESOURCE_TO_COPY_FILE));
             if (Objects.nonNull(stream)) {
-                String outputPath = this.baseDirectoryPath + File.separatorChar + object.getString(RESOURCE_TO_COPY_DEST);
+                String outputPath = this.rootDirectory + File.separatorChar + object.getString(RESOURCE_TO_COPY_DEST);
                 try {
                     final File outputFile = new File(outputPath);
                     FileUtils.copyInputStreamToFile(stream, outputFile);

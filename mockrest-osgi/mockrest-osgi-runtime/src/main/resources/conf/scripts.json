@@ -1,12 +1,12 @@
 [
   {
     "file": "static/start.sh",
-    "output": "bin/start.sh",
+    "output": "start.sh",
     "isExecutable": true
   },
   {
     "file": "static/stop.sh",
-    "output": "bin/stop.sh",
+    "output": "stop.sh",
     "isExecutable": true
   }
 ]
