@@ -1,6 +1,7 @@
 package mockrest.root.osgi.runtime;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -8,9 +9,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Writer;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -19,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Objects;
+import java.util.Properties;
 
 import static mockrest.root.osgi.runtime.Constants.*;
 
@@ -30,6 +35,10 @@ public class MockRestFileStructure {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     public static MockRestFileStructure INSTANCE = null;
+
+    private static final String CONF_PROP_APP_BASE = "mr_base";
+
+    private static final String CONF_PROP_APP_JARFILE = "mr_executor";
 
     //path to base mockrest directory
     private String baseDirectoryPath;
@@ -129,6 +138,7 @@ public class MockRestFileStructure {
         try {
             this.setupConfigurationDirectory();
             this.setupFelixConfig();
+            this.setupApplicationConfig();
         } catch (IOException e) {
             logger.error("Unable to setup configuration : ", e);
         }
@@ -170,6 +180,65 @@ public class MockRestFileStructure {
         }
         if (Files.list(binPath).toArray().length == 0) {
             this.copyBinContent();
+        }
+    }
+
+    /**
+     * Setup application configuration properties file under conf.
+     *
+     * @throws IOException
+     */
+    private void setupApplicationConfig() throws IOException {
+        Path outputConf = Paths.get(this.configurationDirectoryPath + File.separatorChar + OUTPUT_DIR_CONFIG_FILE);
+        if (!Files.exists(outputConf)) {
+            Files.createFile(outputConf);
+        }
+        this.manageApplicationConfigurations(outputConf);
+    }
+
+    /**
+     * Preparing application conf properties.
+     * Checking conf file for existing properties, validating them and
+     * replacing if needed.
+     *
+     * properties contains
+     *  <ul>
+     *      <li>application base path</li>
+     *      <li>executable jar file name.</li>
+     *  </ul>
+     *
+     * @param confPath
+     * @throws IOException
+     */
+    private void manageApplicationConfigurations(Path confPath) throws IOException {
+        FileReader fileReader = new FileReader(confPath.toFile());
+        boolean needToWrite = false;
+
+        //read existing properties from conf.
+        Properties properties = new Properties();
+        properties.load(fileReader);
+
+        //check application base path and update if missing or not correct.
+        String basePath = StringUtils.substringBeforeLast(this.baseDirectoryPath,
+                String.valueOf(File.separatorChar));
+        if (properties.getProperty(CONF_PROP_APP_BASE, "").isEmpty() ||
+                !properties.get(CONF_PROP_APP_BASE).equals(basePath)) {
+            properties.put(CONF_PROP_APP_BASE, basePath);
+            needToWrite = true;
+        }
+
+        //check jar file name and update if missing or incorrect.
+        File jarFile = new File(MockRestFileStructure.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+        if (Objects.nonNull(jarFile) && (properties.getProperty(CONF_PROP_APP_JARFILE, "").isEmpty() ||
+                                    !properties.getProperty(CONF_PROP_APP_JARFILE).equals(jarFile.getName()))) {
+            properties.put(CONF_PROP_APP_JARFILE, jarFile.getName());
+            needToWrite = true;
+        }
+        //write properties file if any property is changes or updated.
+        if (needToWrite) {
+            try(Writer fileWriter = new FileWriter(confPath.toFile())) {
+                properties.store(fileWriter, "");
+            }
         }
     }
 

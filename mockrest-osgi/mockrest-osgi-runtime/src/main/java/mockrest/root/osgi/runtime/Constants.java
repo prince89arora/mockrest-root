@@ -19,6 +19,8 @@ public class Constants {
 
     public static final String OUTPUT_DIR_OSGI_FILE = "osgi.properties";
 
+    public static final String OUTPUT_DIR_CONFIG_FILE = "conf.properties";
+
     public static final String DEFAULT_BUNDLES_DIR = "default_bundles";
 
     public static final String DIR_OUTPUT_BIN = "bin";
