@@ -1,5 +1,6 @@
 package mockrest.root.osgi.runtime;
 
+import mockrest.root.osgi.runtime.task.AsyncTaskExecutor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -110,15 +111,22 @@ public class MockRestFileStructure {
      *
      * @throws IOException
      */
-    private void writeProcessFile() throws IOException {
-        String processIdFilePath = this.baseMRDirectoryPath + File.separator + PID_FILENAME;
-        Path path = Paths.get(processIdFilePath);
-        if (!Files.exists(path)) {
-            Files.createFile(path);
-        }
-        Files.write(path,
-                String.valueOf(MockRestStartupHelper.getProcessId()).getBytes(),
-                StandardOpenOption.WRITE);
+    private void writeProcessFile() {
+        AsyncTaskExecutor.executor()
+                .execute(() -> {
+                    try {
+                        String processIdFilePath = this.baseMRDirectoryPath + File.separator + PID_FILENAME;
+                        Path path = Paths.get(processIdFilePath);
+                        if (!Files.exists(path)) {
+                            Files.createFile(path);
+                        }
+                        Files.write(path,
+                                String.valueOf(MockRestStartupHelper.getProcessId()).getBytes(),
+                                StandardOpenOption.WRITE);
+                    } catch (IOException ex) {
+                        logger.error("Unable to write process file : ", ex);
+                    }
+                });
     }
 
     /**
@@ -174,16 +182,25 @@ public class MockRestFileStructure {
     }
 
     /**
-     * Setup application configuration properties file under conf.
+     * asynchronously setup application configuration properties file under conf.
+     * A properties file under {@link Constants#OUTPUT_DIR_CONF} to maintain
+     * mockrest base path, jar file name and other global information.
      *
      * @throws IOException
      */
-    private void setupApplicationConfig() throws IOException {
-        Path outputConf = Paths.get(this.configurationDirectoryPath + File.separatorChar + OUTPUT_DIR_CONFIG_FILE);
-        if (!Files.exists(outputConf)) {
-            Files.createFile(outputConf);
-        }
-        this.manageApplicationConfigurations(outputConf);
+    private void setupApplicationConfig() {
+        AsyncTaskExecutor.executor()
+                .execute(() -> {
+                    try {
+                        Path outputConf = Paths.get(this.configurationDirectoryPath + File.separatorChar + OUTPUT_DIR_CONFIG_FILE);
+                        if (!Files.exists(outputConf)) {
+                            Files.createFile(outputConf);
+                        }
+                        this.manageApplicationConfigurations(outputConf);
+                    } catch (IOException e) {
+                        logger.error("Unable to setup application config : ", e);
+                    }
+                });
     }
 
     /**
@@ -232,53 +249,60 @@ public class MockRestFileStructure {
         }
     }
 
+    /**
+     * Asynchronously copying start and stop scripts for user in
+     * mockrest base directory.
+     */
     private void copyScripts() {
-        InputStream stream = Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream(SCRIPTS_CONF_PATH);
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, Charset.defaultCharset()))) {
-            StringBuilder builder = new StringBuilder();
-            reader.lines().forEach(line -> {
-                builder.append(line);
-            });
+        AsyncTaskExecutor.executor()
+                .execute(() -> {
+                    InputStream stream = Thread.currentThread().getContextClassLoader()
+                            .getResourceAsStream(SCRIPTS_CONF_PATH);
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, Charset.defaultCharset()))) {
+                        StringBuilder builder = new StringBuilder();
+                        reader.lines().forEach(line -> {
+                            builder.append(line);
+                        });
 
-            JSONArray resourceArray = new JSONArray(builder.toString());
-            this.copyResources(resourceArray);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+                        JSONArray resourceArray = new JSONArray(builder.toString());
+                        this.copyResources(resourceArray);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
     }
 
+    /**
+     * Process json array to copy resource file to mockrest output directory structure.
+     *
+     * @param resourcesList
+     */
     private void copyResources(JSONArray resourcesList) {
         resourcesList.forEach(conf -> {
             JSONObject object = (JSONObject) conf;
-            InputStream stream = MockRestFileStructure.class.getClassLoader()
-                    .getResourceAsStream(object.getString(RESOURCE_TO_COPY_FILE));
-            if (Objects.nonNull(stream)) {
-                String outputPath = this.rootDirectory + File.separatorChar + object.getString(RESOURCE_TO_COPY_DEST);
-                try {
-                    final File outputFile = new File(outputPath);
+            try (InputStream stream = MockRestFileStructure.class.getClassLoader()
+                    .getResourceAsStream(object.getString(RESOURCE_TO_COPY_FILE))) {
+                if (object.getString(RESOURCE_TO_COPY_DEST) != null ||
+                        !object.getString(RESOURCE_TO_COPY_DEST).isEmpty()) {
+                    //file to written in mockrest output folder structure.
+                    final File outputFile = new File(
+                            this.rootDirectory + File.separatorChar + object.getString(RESOURCE_TO_COPY_DEST)
+                    );
+                    //writing file if does'nt exist
                     if (!outputFile.exists()) {
                         FileUtils.copyInputStreamToFile(stream, outputFile);
                         if (object.getBoolean(RESOURCE_TO_COPY_EXECUTABLE)) {
                             outputFile.setExecutable(true);
                         }
                     }
-                } catch (IOException e) {
-                    logger.error(
-                            String.format(
-                                    "Unable to copy resource %s destination %s ",
-                                    object.getString(RESOURCE_TO_COPY_FILE),
-                                    object.getString(RESOURCE_TO_COPY_DEST)), e);
-                } finally {
-                    try {
-                        stream.close();
-                        stream = null;
-                    } catch (IOException e) {
-                        logger.error("Unable to close stream : ", e);
-                    }
                 }
+            } catch (IOException e) {
+                logger.error(
+                        String.format(
+                                "Unable to copy resource %s destination %s ",
+                                object.getString(RESOURCE_TO_COPY_FILE),
+                                object.getString(RESOURCE_TO_COPY_DEST)), e);
             }
-
         });
     }
 }

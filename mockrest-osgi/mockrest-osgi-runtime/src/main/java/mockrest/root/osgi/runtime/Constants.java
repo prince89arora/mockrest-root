@@ -23,8 +23,6 @@ public class Constants {
 
     public static final String DEFAULT_BUNDLES_DIR = "default_bundles";
 
-    public static final String DIR_OUTPUT_BIN = "bin";
-
     public static final String RESOURCE_TO_COPY_FILE = "file";
 
     public static final String RESOURCE_TO_COPY_DEST = "output";

@@ -16,12 +16,14 @@ public class Driver {
 
     public static void main(String[] args) {
         try {
+            long startTime = System.currentTimeMillis();
             //shutdown hook for close.
             Driver.shutdownHook();
             //Initialize folder structure setup.
             MockRestFileStructure.getStructure().initSetup();
             //Initialize osgi setup.
             OSGiFrameworkFactory.getInstance().init();
+            logger.info("started in : "+ String.valueOf(System.currentTimeMillis() - startTime)+ " ms");
         } catch (Exception ex) {
             logger.error("Exception in Driver ", ex);
         }

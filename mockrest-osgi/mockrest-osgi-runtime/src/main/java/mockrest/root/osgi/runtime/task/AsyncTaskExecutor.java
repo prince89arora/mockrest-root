@@ -1,22 +1,20 @@
 package mockrest.root.osgi.runtime.task;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
+ * Executor to run a task/action asynchronously.
+ * Uses Cached threadpool to manage threads for asyn tasks.
+ *
  * @author prince.arora
  */
 public class AsyncTaskExecutor {
 
-    private static final Logger logger = LoggerFactory.getLogger(AsyncTaskExecutor.class);
-
+    //executor with cached thread pool.
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
-    public static AsyncTaskExecutor EXECUTOR;
+    private static AsyncTaskExecutor EXECUTOR;
 
     static {
         EXECUTOR = new AsyncTaskExecutor();
@@ -26,8 +24,23 @@ public class AsyncTaskExecutor {
         return EXECUTOR;
     }
 
-    public Future<Object> execute(Runnable runnable) {
-        return executorService.submit(Executors.callable(runnable));
+    /**
+     * Execute action asynchronously, using executor service.
+     *
+     * Requires an implementation of functional interface {@link Task} or
+     * a lamda function to contain actual action to be performed in another thread.
+     *
+     * @param task
+     */
+    public void execute(Task task) {
+        this.executorService.submit(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        task.run();
+                    }
+                }
+        );
     }
 
 }
